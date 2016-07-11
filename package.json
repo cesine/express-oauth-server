@@ -25,7 +25,7 @@
     "bluebird": "^3.0.5",
     "debug": "^2.2.0",
     "express": "^4.13.3",
-    "oauth2-server": "next",
+    "oauth2-server": "https://github.com/cesine/node-oauth2-server.git",
     "thenify": "^3.0.0"
   },
   "devDependencies": {
