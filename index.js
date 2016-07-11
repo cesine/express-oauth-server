@@ -2,7 +2,7 @@
 /**
  * Module dependencies.
  */
-
+var debug = require('debug')('oauth');
 var InvalidArgumentError = require('oauth2-server/lib/errors/invalid-argument-error');
 var NodeOAuthServer = require('oauth2-server');
 var Promise = require('bluebird');
@@ -16,12 +16,14 @@ var UnauthorizedRequestError = require('oauth2-server/lib/errors/unauthorized-re
 
 function ExpressOAuthServer(options) {
   options = options || {};
+  debug(options);
 
   if (!options.model) {
     throw new InvalidArgumentError('Missing parameter: `model`');
   }
 
   this.server = new NodeOAuthServer(options);
+  debug(this.server);
 }
 
 /**
@@ -33,7 +35,9 @@ function ExpressOAuthServer(options) {
  */
 
 ExpressOAuthServer.prototype.authenticate = function(options) {
+  debug('authenticate', options);
   var server = this.server;
+  var handleError = this.options.handleError || handleError;
 
   return function(req, res, next) {
     var request = new Request(req);
@@ -62,7 +66,9 @@ ExpressOAuthServer.prototype.authenticate = function(options) {
  */
 
 ExpressOAuthServer.prototype.authorize = function(options) {
+  debug('authorize', options);
   var server = this.server;
+  var handleErrorMiddleware = options.handleError || handleError;
 
   return function(req, res, next) {
     var request = new Request(req);
@@ -79,7 +85,7 @@ ExpressOAuthServer.prototype.authorize = function(options) {
         return handleResponse(req, res, response);
       })
       .catch(function(e) {
-        return handleError(e, req, res, response);
+        return handleErrorMiddleware(e, req, res, response);
       })
       .finally(next);
   };
@@ -94,9 +100,14 @@ ExpressOAuthServer.prototype.authorize = function(options) {
  */
 
 ExpressOAuthServer.prototype.token = function(options) {
+  debug('token', options);
   var server = this.server;
+  console.log(options);
+  var handleErrorMiddleware = options.handleError || handleError;
 
   return function(req, res, next) {
+    debug('token', req.user, res.headers);
+
     var request = new Request(req);
     var response = new Response(res);
 
@@ -111,7 +122,8 @@ ExpressOAuthServer.prototype.token = function(options) {
         return handleResponse(req, res, response);
       })
       .catch(function(e) {
-        return handleError(e, req, res, response);
+        debug(e.stack)
+        return handleErrorMiddleware(e, req, res, response);
       })
       .finally(next);
   };
@@ -122,6 +134,7 @@ ExpressOAuthServer.prototype.token = function(options) {
  */
 
 var handleResponse = function(req, res, response) {
+  debug('handleResponse', response.headers);
   res.set(response.headers);
   res.status(response.status).send(response.body);
 };
@@ -131,6 +144,8 @@ var handleResponse = function(req, res, response) {
  */
 
 var handleError = function(e, req, res, response) {
+  debug('handleError', e.stack);
+
   if (response) {
     res.set(response.headers);
   }
