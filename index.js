@@ -102,7 +102,6 @@ ExpressOAuthServer.prototype.authorize = function(options) {
 ExpressOAuthServer.prototype.token = function(options) {
   debug('token', options);
   var server = this.server;
-  console.log(options);
   var handleErrorMiddleware = options.handleError || handleError;
 
   return function(req, res, next) {
